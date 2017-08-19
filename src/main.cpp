@@ -115,7 +115,7 @@ int main() {
           *
           */
           double steer_value = 0;
-          double throttle_value = 1;
+          double throttle_value = 0.5;
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
@@ -128,11 +128,23 @@ int main() {
           vector<double> waypoints_y_local;
 
           transformWorldCoordinates2VehicleCoordinates(px, py, psi, ptsx, ptsy, waypoints_x_local, waypoints_y_local);
+          Eigen::VectorXd waypoints_x_local_eigen = Eigen::VectorXd::Map(waypoints_x_local.data(), waypoints_x_local.size());
+          Eigen::VectorXd waypoints_y_local_eigen = Eigen::VectorXd::Map(waypoints_y_local.data(), waypoints_y_local.size());
+
+          auto coeffs = polyfit(waypoints_x_local_eigen, waypoints_y_local_eigen, 3);
 
           //Display the MPC predicted trajectory 
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
 
+          for(int i = 0; i < waypoints_x_local.size(); i++)
+          {
+            double x = waypoints_x_local[i];
+            double y = polyeval(coeffs, x);
+            mpc_x_vals.push_back(x);
+            mpc_y_vals.push_back(y);
+
+          }
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
 
