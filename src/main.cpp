@@ -114,16 +114,8 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          double steer_value = 0;
-          double throttle_value = 0.5;
 
-          json msgJson;
-          // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
-          // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = throttle_value;
-
-
+          // TODO all mixed in world and local
           vector<double> waypoints_x_local;
           vector<double> waypoints_y_local;
 
@@ -132,6 +124,27 @@ int main() {
           Eigen::VectorXd waypoints_y_local_eigen = Eigen::VectorXd::Map(waypoints_y_local.data(), waypoints_y_local.size());
 
           auto coeffs = polyfit(waypoints_x_local_eigen, waypoints_y_local_eigen, 3);
+
+          Eigen::VectorXd state(6);
+          double x = 0;
+          double y = 0;
+          double cte = polyeval(coeffs, x);
+          double epsi = 0;
+
+          state << x, y, psi, v, cte, epsi;
+          auto vars = mpc.Solve(state, coeffs);
+
+          //TODO transfrom from angle to -1 1
+          double steer_value = vars[0];
+          double throttle_value = vars[1];
+          std::cout << "steer = " << steer_value << " throttle = " << throttle_value << std::endl;
+
+          json msgJson;
+          // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
+          // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
+          msgJson["steering_angle"] = steer_value;
+          msgJson["throttle"] = throttle_value;
+
 
           //Display the MPC predicted trajectory 
           vector<double> mpc_x_vals;
