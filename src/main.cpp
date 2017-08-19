@@ -65,6 +65,22 @@ Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
   return result;
 }
 
+void transformWorldCoordinates2VehicleCoordinates
+(float x_world_vehicle, float y_world_vehicle, float psi_world_vehicle, vector<double> xvals,vector<double> yvals, vector<double> &xlocals, vector<double> &ylocals)
+{
+  int arraySize = xvals.size();
+  for(int i = 0; i < arraySize; i++)
+  {
+    double x = xvals[i] - x_world_vehicle;
+    double y = yvals[i] - y_world_vehicle;
+    double x_local = x * cos(-psi_world_vehicle) - y * sin(-psi_world_vehicle);
+    double y_local = x * sin(-psi_world_vehicle) + y * cos(-psi_world_vehicle);
+
+    xlocals.push_back(x_local);
+    ylocals.push_back(y_local);
+  }
+}
+
 int main() {
   uWS::Hub h;
 
@@ -107,6 +123,12 @@ int main() {
           msgJson["steering_angle"] = steer_value;
           msgJson["throttle"] = throttle_value;
 
+
+          vector<double> waypoints_x_local;
+          vector<double> waypoints_y_local;
+
+          transformWorldCoordinates2VehicleCoordinates(px, py, psi, ptsx, ptsy, waypoints_x_local, waypoints_y_local);
+
           //Display the MPC predicted trajectory 
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
@@ -118,19 +140,8 @@ int main() {
           msgJson["mpc_y"] = mpc_y_vals;
 
           //Display the waypoints/reference line
-          vector<double> next_x_vals;
-          vector<double> next_y_vals;
-
-          for(int i = 0; i < ptsx.size(); i++)
-          {
-            double x = ptsx[i] - px;
-            double y = ptsy[i] - py;
-            double ptsx_car = x * cos(-psi) - y * sin(-psi);
-            double ptsy_car = x * sin(-psi) + y * cos(-psi);
-
-            next_x_vals.push_back(ptsx_car);
-            next_y_vals.push_back(ptsy_car);
-          }
+          vector<double> next_x_vals = waypoints_x_local;
+          vector<double> next_y_vals = waypoints_y_local;
 
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
