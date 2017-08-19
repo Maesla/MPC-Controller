@@ -98,8 +98,8 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          double steer_value;
-          double throttle_value;
+          double steer_value = 0;
+          double throttle_value = 1;
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
@@ -120,6 +120,18 @@ int main() {
           //Display the waypoints/reference line
           vector<double> next_x_vals;
           vector<double> next_y_vals;
+
+          for(int i = 0; i < ptsx.size(); i++)
+          {
+            double x = ptsx[i] - px;
+            double y = ptsy[i] - py;
+            double ptsx_car = x * cos(-psi) - y * sin(-psi);
+            double ptsy_car = x * sin(-psi) + y * cos(-psi);
+
+            next_x_vals.push_back(ptsx_car);
+            next_y_vals.push_back(ptsy_car);
+          }
+
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
