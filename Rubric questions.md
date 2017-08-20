@@ -31,7 +31,7 @@ f(x​​<sub>t</sub>​​) is a polynomial fitting the waypoints.
 
 ψdest<sub>t</sub> = atan(f'(x​​<sub>t</sub>​​))
 
-#Timestep Length and Elapsed Duration (N & dt)#
+# Timestep Length and Elapsed Duration (N & dt) #
 At the beginning, I started with N = 25 and dt = 0.05. The problem with this was that only Time = 25*0.05 = 1.25 seconds were simulated. It was a problem mostly in the curves.
 Then I tried with bigger time, N = 25 and dt = 0.5. The result quite improved, but a very weird behavior appeared.
 [Forum link](https://discussions.udacity.com/t/predicted-path-does-weird-loops-in-some-frames/344163)
@@ -39,7 +39,7 @@ Apparently the problem was that the model was going farther than the waypoints.
 Reducing the number of points and dt solved the problem.
 Finally, I use N = 20 and dt = 0.20
 
-#Polynomial Fitting and MPC Preprocessing#
+# Polynomial Fitting and MPC Preprocessing #
 A 3th grade polynomial is calculated by polyfit function.
 I have develop a method to derive this polynomial, in order to calculate epsi.
 
