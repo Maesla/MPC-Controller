@@ -100,7 +100,8 @@ double transformSteering2SteeringInput(double steering)
   // Input = 1 => steer = 25 degrees OR 0.436332 rads
   // X steer (rad) · 1(input)/ 0.436332 (rad) => X · (1/0.436332)(input) => X · 2.291832 (input)
   double conversionFactor = 2.291832;
-  return steering * conversionFactor;
+  return -steering/2.67;
+  //return steering * conversionFactor;
 }
 
 int main() {

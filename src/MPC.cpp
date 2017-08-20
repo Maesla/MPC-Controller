@@ -60,19 +60,23 @@ class FG_eval {
       fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
     }
 
+
     // Minimize the use of actuators.
     for(int t = 0; t < N - 1; t++)
     {
-      fg[0] += CppAD::pow(vars[delta_start + t], 2);
+      fg[0] += 8000*CppAD::pow(vars[delta_start + t], 2);
       fg[0] += CppAD::pow(vars[a_start + t], 2);
     }
+
+
 
     // Minimize the value gap between sequential actuations.
     for (int t = 0; t < N - 2; t++)
     {
-      fg[0] += CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+      fg[0] += 1000*CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
       fg[0] += CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
     }
+
 
     // Initial constraints
     //
@@ -134,7 +138,7 @@ class FG_eval {
           cte1 - ((f0 - y0) + (v0 * CppAD::sin(epsi0) * dt));
       //TODO probable change
       fg[1 + epsi_start + t] =
-          epsi1 - ((psi0 - psides0) - v0 * delta0 / Lf * dt);
+          epsi1 - ((psi0 - psides0) + v0 * delta0 / Lf * dt);
 
 
     }
@@ -204,6 +208,9 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   {
     vars_lowerbound[i] = -0.436332;
     vars_upperbound[i] = 0.436332;
+
+    //vars_lowerbound[i] = 0;
+    //vars_upperbound[i] = 0;
   }
 
   // Acceleration/decceleration upper and lower limits.
@@ -212,6 +219,9 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   {
    vars_lowerbound[i] = -1.0;
    vars_upperbound[i] = 1.0;
+
+   //vars_lowerbound[i] = 0;
+   //vars_upperbound[i] = 0;
   }
 
   // Lower and upper limits for the constraints
