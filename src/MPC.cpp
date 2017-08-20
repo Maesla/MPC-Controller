@@ -136,7 +136,6 @@ class FG_eval {
       fg[1 + v_start + t] = v1 - (v0 + a0 * dt);
       fg[1 + cte_start + t] =
           cte1 - ((f0 - y0) + (v0 * CppAD::sin(epsi0) * dt));
-      //TODO probable change
       fg[1 + epsi_start + t] =
           epsi1 - ((psi0 - psides0) + v0 * delta0 / Lf * dt);
 
@@ -151,7 +150,6 @@ class FG_eval {
 MPC::MPC() {}
 MPC::~MPC() {}
 
-//vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs)
 Result MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs)
 {
   bool ok = true;
@@ -210,9 +208,6 @@ Result MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs)
   {
     vars_lowerbound[i] = -0.436332;
     vars_upperbound[i] = 0.436332;
-
-    //vars_lowerbound[i] = 0;
-    //vars_upperbound[i] = 0;
   }
 
   // Acceleration/decceleration upper and lower limits.
@@ -221,9 +216,6 @@ Result MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs)
   {
    vars_lowerbound[i] = -1.0;
    vars_upperbound[i] = 1.0;
-
-   //vars_lowerbound[i] = 0;
-   //vars_upperbound[i] = 0;
   }
 
   // Lower and upper limits for the constraints
@@ -285,7 +277,6 @@ Result MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs)
   Result result;
   for (int i = 0; i < N-1 ; i++)
   {
-    //cout << i << ": " << "solution.x[x_start+i]: " << solution.x[x_start+i] << " solution.x[y_start+i]: " << solution.x[y_start+i] << endl;
     result.x.push_back(solution.x[x_start+i]);
     result.y.push_back(solution.x[y_start+i]);
     result.steer.push_back(solution.x[delta_start+i]);
@@ -300,6 +291,5 @@ Result MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs)
   //
   // {...} is shorthand for creating a vector, so auto x1 = {1.0,2.0}
   // creates a 2 element double vector.
-  //return {solution.x[delta_start], solution.x[a_start]};
   return result;
 }

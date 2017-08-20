@@ -107,11 +107,9 @@ void transformWorldCoordinates2VehicleCoordinates
 double transformSteering2SteeringInput(double steering)
 {
   // Input = 1 => steer = 25 degrees OR 0.436332 rads
-  // X steer (rad) · 1(input)/ 0.436332 (rad) => X · (1/0.436332)(input) => X · 2.291832 (input)
-  double conversionFactor = 2.291832;
+  // X steer (rad) · 1(input)/ 0.436332 (rad) => X · (1/0.436332)(input)
+  // -Negative value is because of unity coordinate system
   return -steering/0.436332;
-  //return -steering/2.67;
-  //return steering * conversionFactor;
 }
 
 double CalculateCte(Eigen::VectorXd coeffs, double x, double y)
@@ -179,12 +177,9 @@ int main() {
           state << x, y, psi, v, cte, epsi;
           auto result = mpc.Solve(state, coeffs);
 
-          //TODO transfrom from angle to -1 1
-          //double steer_value = vars[0];
           double steer_value = result.steer[0];
 
           steer_value = transformSteering2SteeringInput(steer_value);
-          //double throttle_value = vars[1];
           double throttle_value = result.acceleration[0];
 
           std::cout << "steer = " << steer_value << " throttle = " << throttle_value << std::endl;
@@ -226,8 +221,6 @@ int main() {
             next_x_vals.push_back(poly_x);
             next_y_vals.push_back(poly_y);
           }
-          //next_x_vals = waypoints_x_local;
-          //next_y_vals = waypoints_y_local;
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
