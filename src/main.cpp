@@ -168,12 +168,16 @@ int main() {
           double epsi = psi - atan(polyeval(derivative_coeffs, x));
 
           state << x, y, psi, v, cte, epsi;
-          auto vars = mpc.Solve(state, coeffs);
+          auto result = mpc.Solve(state, coeffs);
 
           //TODO transfrom from angle to -1 1
-          double steer_value = vars[0];
+          //double steer_value = vars[0];
+          double steer_value = result.steer[0];
+
           steer_value = transformSteering2SteeringInput(steer_value);
-          double throttle_value = vars[1];
+          //double throttle_value = vars[1];
+          double throttle_value = result.acceleration[0];
+
           std::cout << "steer = " << steer_value << " throttle = " << throttle_value << std::endl;
 
           json msgJson;
@@ -186,7 +190,18 @@ int main() {
           //Display the MPC predicted trajectory 
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
+          for(int i = 0; i < result.x.size(); i++)
+          {
+            double x_local = 0;
+            double y_local = 0;
 
+            double world_x = result.x[i];
+            double world_y = result.y[i];
+
+            transformWorldCoordinates2VehicleCoordinates(x, y, psi, world_x, world_y, x_local, y_local);
+            mpc_x_vals.push_back(x_local);
+            mpc_y_vals.push_back(y_local);
+          }
           /*
           for(int i = 0; i < waypoints_x_local.size(); i++)
           {

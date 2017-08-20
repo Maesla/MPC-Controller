@@ -6,8 +6,8 @@
 using CppAD::AD;
 
 // TODO: Set the timestep length and duration
-size_t N = 12;
-double dt = 0.05;
+size_t N = 25;
+double dt = 0.1;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -22,8 +22,8 @@ double dt = 0.05;
 const double Lf = 2.67;
 
 // Both the reference cross track and orientation errors are 0.
-// The reference velocity is set to 40 mph.
-double ref_v = 40;
+// The reference velocity is set to 8 mph.
+double ref_v = 8;
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus, we should to establish
@@ -151,9 +151,11 @@ class FG_eval {
 MPC::MPC() {}
 MPC::~MPC() {}
 
-vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
+//vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs)
+Result MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs)
+{
   bool ok = true;
-  size_t i;
+  //size_t i;
   typedef CPPAD_TESTVECTOR(double) Dvector;
 
 
@@ -280,6 +282,16 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // Check some of the solution values
   ok &= solution.status == CppAD::ipopt::solve_result<Dvector>::success;
 
+  Result result;
+  for (int i = 0; i < N-1 ; i++)
+  {
+    cout << i << ": " << "solution.x[x_start+i]: " << solution.x[x_start+i] << " solution.x[y_start+i]: " << solution.x[y_start+i] << endl;
+    result.x.push_back(solution.x[x_start+i]);
+    result.y.push_back(solution.x[y_start+i]);
+    result.steer.push_back(solution.x[delta_start+i]);
+    result.acceleration.push_back(solution.x[a_start+i]);
+  }
+
   // Cost
   auto cost = solution.obj_value;
   std::cout << "Cost " << cost << std::endl;
@@ -289,5 +301,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   //
   // {...} is shorthand for creating a vector, so auto x1 = {1.0,2.0}
   // creates a 2 element double vector.
-  return {solution.x[delta_start], solution.x[a_start]};
+  //return {solution.x[delta_start], solution.x[a_start]};
+  return result;
 }
