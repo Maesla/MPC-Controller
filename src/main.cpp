@@ -208,7 +208,6 @@ int main() {
             mpc_y_vals.push_back(world_y);
           }
 
-          */
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
 
