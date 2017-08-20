@@ -6,8 +6,8 @@
 using CppAD::AD;
 
 // TODO: Set the timestep length and duration
-size_t N = 25;
-double dt = 0.1;
+size_t N = 20;
+double dt = 0.20;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -23,7 +23,7 @@ const double Lf = 2.67;
 
 // Both the reference cross track and orientation errors are 0.
 // The reference velocity is set to 8 mph.
-double ref_v = 8;
+double ref_v = 20;
 
 // The solver takes all the state variables and actuator
 // variables in a singular vector. Thus, we should to establish
@@ -56,7 +56,7 @@ class FG_eval {
     for(int t = 0; t < N; t++)
     {
       fg[0] += CppAD::pow(vars[cte_start + t], 2);
-      fg[0] += CppAD::pow(vars[epsi_start + t], 2);
+      fg[0] += 10*CppAD::pow(vars[epsi_start + t], 2);
       fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
     }
 
@@ -64,8 +64,8 @@ class FG_eval {
     // Minimize the use of actuators.
     for(int t = 0; t < N - 1; t++)
     {
-      fg[0] += 800*CppAD::pow(vars[delta_start + t], 2);
-      fg[0] += 100*CppAD::pow(vars[a_start + t], 2);
+      fg[0] += 500*CppAD::pow(vars[delta_start + t], 2);
+      fg[0] += 500*CppAD::pow(vars[a_start + t], 2);
     }
 
 
@@ -285,13 +285,12 @@ Result MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs)
   Result result;
   for (int i = 0; i < N-1 ; i++)
   {
-    cout << i << ": " << "solution.x[x_start+i]: " << solution.x[x_start+i] << " solution.x[y_start+i]: " << solution.x[y_start+i] << endl;
+    //cout << i << ": " << "solution.x[x_start+i]: " << solution.x[x_start+i] << " solution.x[y_start+i]: " << solution.x[y_start+i] << endl;
     result.x.push_back(solution.x[x_start+i]);
     result.y.push_back(solution.x[y_start+i]);
     result.steer.push_back(solution.x[delta_start+i]);
     result.acceleration.push_back(solution.x[a_start+i]);
   }
-
   // Cost
   auto cost = solution.obj_value;
   std::cout << "Cost " << cost << std::endl;
