@@ -165,8 +165,6 @@ int main() {
           transformWorldCoordinates2VehicleCoordinates(px, py, psi, ptsx, ptsy, waypoints_x_local, waypoints_y_local);
           Eigen::VectorXd waypoints_x_local_eigen = Eigen::VectorXd::Map(waypoints_x_local.data(), waypoints_x_local.size());
           Eigen::VectorXd waypoints_y_local_eigen = Eigen::VectorXd::Map(waypoints_y_local.data(), waypoints_y_local.size());
-          //Eigen::VectorXd waypoints_x_eigen = Eigen::VectorXd::Map(ptsx.data(), ptsx.size());
-          //Eigen::VectorXd waypoints_y_eigen = Eigen::VectorXd::Map(ptsy.data(), ptsy.size());
 
           auto coeffs = polyfit(waypoints_x_local_eigen, waypoints_y_local_eigen, 3);
           auto derivative_coeffs = derivePoly(coeffs);
@@ -203,25 +201,13 @@ int main() {
           vector<double> mpc_y_vals;
           for(int i = 0; i < result.x.size(); i++)
           {
-            double x_local = 0;
-            double y_local = 0;
-
             double world_x = result.x[i];
             double world_y = result.y[i];
 
-            //transformWorldCoordinates2VehicleCoordinates(x, y, psi, world_x, world_y, x_local, y_local);
             mpc_x_vals.push_back(world_x);
             mpc_y_vals.push_back(world_y);
           }
-          /*
-          for(int i = 0; i < waypoints_x_local.size(); i++)
-          {
-            double x = waypoints_x_local[i];
-            double y = polyeval(coeffs, x);
-            mpc_x_vals.push_back(x);
-            mpc_y_vals.push_back(y);
 
-          }
           */
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
@@ -235,13 +221,9 @@ int main() {
 
           for(int i = 0; i < waypoints_x_local.size(); i++)
           {
-            double x_local = 0;
-            double y_local = 0;
-
             double poly_x = waypoints_x_local[i];
             double poly_y = polyeval(coeffs, poly_x);
 
-            transformWorldCoordinates2VehicleCoordinates(x, y, psi, poly_x, poly_y, x_local, y_local);
             next_x_vals.push_back(poly_x);
             next_y_vals.push_back(poly_y);
           }
