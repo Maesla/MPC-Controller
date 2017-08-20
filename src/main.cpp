@@ -95,6 +95,15 @@ void transformWorldCoordinates2VehicleCoordinates
   }
 }
 
+void transformWorldCoordinates2VehicleCoordinates
+(float x_world_vehicle, float y_world_vehicle, float psi_world_vehicle, double x_world, double y_world, double &x_local, double &y_local)
+{
+  double x = x_world - x_world_vehicle;
+  double y = y_world - y_world_vehicle;
+  x_local = x * cos(-psi_world_vehicle) - y * sin(-psi_world_vehicle);
+  y_local = x * sin(-psi_world_vehicle) + y * cos(-psi_world_vehicle);
+}
+
 double transformSteering2SteeringInput(double steering)
 {
   // Input = 1 => steer = 25 degrees OR 0.436332 rads
@@ -197,6 +206,18 @@ int main() {
           vector<double> next_x_vals;
           vector<double> next_y_vals;
 
+          for(int i = 0; i < ptsx.size(); i++)
+          {
+            double x_local = 0;
+            double y_local = 0;
+
+            double poly_x = ptsx[i];
+            double poly_y = polyeval(coeffs, poly_x);
+
+            transformWorldCoordinates2VehicleCoordinates(x, y, psi, poly_x, poly_y, x_local, y_local);
+            next_x_vals.push_back(x_local);
+            next_y_vals.push_back(y_local);
+          }
           //next_x_vals = waypoints_x_local;
           //next_y_vals = waypoints_y_local;
 
