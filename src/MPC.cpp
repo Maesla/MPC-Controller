@@ -111,8 +111,10 @@ class FG_eval {
 
       //TODO this is probably wrong in a 3th grade polynomial
       //TODO what is f0 and psides0?
-      AD<double> f0 = coeffs[0] + coeffs[1] * x0;
-      AD<double> psides0 = CppAD::atan(coeffs[1]);
+      //AD<double> f0 = coeffs[0] + coeffs[1] * x0;
+      //AD<double> psides0 = CppAD::atan(coeffs[1]);
+      AD<double> f0 = coeffs[0] + coeffs[1] * CppAD::pow(x0, 1) + coeffs[2]*CppAD::pow(x0, 2) + coeffs[3]*CppAD::pow(x0, 3);
+      AD<double> psides0 = CppAD::atan(coeffs[1] + 2*CppAD::pow(coeffs[2], 1) + 3*CppAD::pow(coeffs[3], 2));
 
       // Here's `x` to get you started.
       // The idea here is to constraint this value to be 0.
@@ -132,7 +134,7 @@ class FG_eval {
           cte1 - ((f0 - y0) + (v0 * CppAD::sin(epsi0) * dt));
       //TODO probable change
       fg[1 + epsi_start + t] =
-          epsi1 - ((psi0 - psides0) + v0 * delta0 / Lf * dt);
+          epsi1 - ((psi0 - psides0) - v0 * delta0 / Lf * dt);
 
 
     }

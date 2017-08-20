@@ -65,6 +65,20 @@ Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
   return result;
 }
 
+Eigen::VectorXd derivePoly(Eigen::VectorXd coeffs)
+{
+  int derivativeGrade = coeffs.size() - 1;
+  Eigen::VectorXd derivativePoly(derivativeGrade);
+
+  for(int grade = 0; grade < derivativeGrade; grade++)
+  {
+    int originalGrade = grade + 1;
+    derivativePoly[grade] = coeffs[originalGrade]*originalGrade;
+  }
+  return derivativePoly;
+}
+
+
 void transformWorldCoordinates2VehicleCoordinates
 (float x_world_vehicle, float y_world_vehicle, float psi_world_vehicle, vector<double> xvals,vector<double> yvals, vector<double> &xlocals, vector<double> &ylocals)
 {
@@ -79,6 +93,14 @@ void transformWorldCoordinates2VehicleCoordinates
     xlocals.push_back(x_local);
     ylocals.push_back(y_local);
   }
+}
+
+double transformSteering2SteeringInput(double steering)
+{
+  // Input = 1 => steer = 25 degrees OR 0.436332 rads
+  // X steer (rad) · 1(input)/ 0.436332 (rad) => X · (1/0.436332)(input) => X · 2.291832 (input)
+  double conversionFactor = 2.291832;
+  return steering * conversionFactor;
 }
 
 int main() {
@@ -119,23 +141,27 @@ int main() {
           vector<double> waypoints_x_local;
           vector<double> waypoints_y_local;
 
-          transformWorldCoordinates2VehicleCoordinates(px, py, psi, ptsx, ptsy, waypoints_x_local, waypoints_y_local);
-          Eigen::VectorXd waypoints_x_local_eigen = Eigen::VectorXd::Map(waypoints_x_local.data(), waypoints_x_local.size());
-          Eigen::VectorXd waypoints_y_local_eigen = Eigen::VectorXd::Map(waypoints_y_local.data(), waypoints_y_local.size());
+          //transformWorldCoordinates2VehicleCoordinates(px, py, psi, ptsx, ptsy, waypoints_x_local, waypoints_y_local);
+          //Eigen::VectorXd waypoints_x_local_eigen = Eigen::VectorXd::Map(waypoints_x_local.data(), waypoints_x_local.size());
+          //Eigen::VectorXd waypoints_y_local_eigen = Eigen::VectorXd::Map(waypoints_y_local.data(), waypoints_y_local.size());
+          Eigen::VectorXd waypoints_x_eigen = Eigen::VectorXd::Map(ptsx.data(), ptsx.size());
+          Eigen::VectorXd waypoints_y_eigen = Eigen::VectorXd::Map(ptsy.data(), ptsy.size());
 
-          auto coeffs = polyfit(waypoints_x_local_eigen, waypoints_y_local_eigen, 3);
+          auto coeffs = polyfit(waypoints_x_eigen, waypoints_y_eigen, 3);
+          auto derivative_coeffs = derivePoly(coeffs);
 
           Eigen::VectorXd state(6);
-          double x = 0;
-          double y = 0;
-          double cte = polyeval(coeffs, x);
-          double epsi = 0;
+          double x = px;
+          double y = py;
+          double cte = polyeval(coeffs, x) - y;
+          double epsi = psi - atan(polyeval(derivative_coeffs, x));
 
           state << x, y, psi, v, cte, epsi;
           auto vars = mpc.Solve(state, coeffs);
 
           //TODO transfrom from angle to -1 1
           double steer_value = vars[0];
+          steer_value = transformSteering2SteeringInput(steer_value);
           double throttle_value = vars[1];
           std::cout << "steer = " << steer_value << " throttle = " << throttle_value << std::endl;
 
@@ -150,6 +176,7 @@ int main() {
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
 
+          /*
           for(int i = 0; i < waypoints_x_local.size(); i++)
           {
             double x = waypoints_x_local[i];
@@ -158,6 +185,7 @@ int main() {
             mpc_y_vals.push_back(y);
 
           }
+          */
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
 
@@ -165,9 +193,11 @@ int main() {
           msgJson["mpc_y"] = mpc_y_vals;
 
           //Display the waypoints/reference line
-          vector<double> next_x_vals = waypoints_x_local;
-          vector<double> next_y_vals = waypoints_y_local;
+          vector<double> next_x_vals;
+          vector<double> next_y_vals;
 
+          //next_x_vals = waypoints_x_local;
+          //next_y_vals = waypoints_y_local;
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
