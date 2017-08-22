@@ -112,16 +112,24 @@ double transformSteering2SteeringInput(double steering)
   return -steering/0.436332;
 }
 
-double CalculateCte(Eigen::VectorXd coeffs, double x, double y)
+double calculateCte(Eigen::VectorXd coeffs, double x, double y)
 {
   return polyeval(coeffs, x) - y;
 }
 
-double CalculateEpsi(Eigen::VectorXd derivative_coeffs, double x, double psi)
+double calculateEpsi(Eigen::VectorXd derivative_coeffs, double x, double psi)
 {
   return psi - atan(polyeval(derivative_coeffs, x));
 }
 
+
+void applyLatency(double &x, double &y, double &psi, double &speed, double steer, double acc, double lf, double latency)
+{
+  x = x + speed*cos(psi)*latency;
+  y = y + speed*sin(psi)*latency;
+  psi = psi + (speed/lf)*steer*latency;
+  speed = speed + acc*latency;
+}
 int main() {
   uWS::Hub h;
 
@@ -148,6 +156,9 @@ int main() {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
+          double steer_value = j[1]["steering_angle"];
+          steer_value *= -1.0f; //Unity steer
+          double throttle_value = j[1]["throttle"];
 
           /*
           * TODO: Calculate steering angle and throttle using MPC.
@@ -156,7 +167,10 @@ int main() {
           *
           */
 
-          // TODO all mixed in world and local
+          double latency = 0.1f;
+          double lf = 2.67;
+          applyLatency(px, py, psi, v, steer_value, throttle_value, lf, latency);
+
           vector<double> waypoints_x_local;
           vector<double> waypoints_y_local;
 
@@ -171,16 +185,16 @@ int main() {
           double x = 0;
           double y = 0;
           psi = 0;
-          double cte = CalculateCte(coeffs, x, y);
-          double epsi = CalculateEpsi(derivative_coeffs, x, psi);
+          double cte = calculateCte(coeffs, x, y);
+          double epsi = calculateEpsi(derivative_coeffs, x, psi);
 
           state << x, y, psi, v, cte, epsi;
           auto result = mpc.Solve(state, coeffs);
 
-          double steer_value = result.steer[0];
-
+          steer_value = result.steer[0];
           steer_value = transformSteering2SteeringInput(steer_value);
-          double throttle_value = result.acceleration[0];
+
+          throttle_value = result.acceleration[0];
 
           std::cout << "steer = " << steer_value << " throttle = " << throttle_value << std::endl;
 
